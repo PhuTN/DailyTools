@@ -1,4 +1,4 @@
-using Microsoft.Data.Sqlite;
+using Microsoft.Data.SqlClient;
 using Respawn;
 using System.Data.Common;
 
@@ -17,10 +17,17 @@ internal sealed class DatabaseResetter : IAsyncDisposable
 
     public static async Task<DatabaseResetter> CreateAsync(string connectionString)
     {
-        var connection = new SqliteConnection(connectionString);
+        // Đã sửa SqliteConnection thành SqlConnection
+        var connection = new SqlConnection(connectionString);
 
         await connection.OpenAsync();
-        var respawner = await Respawner.CreateAsync(connection);
+        
+        // Thêm cấu hình DbAdapter.SqlServer cho công cụ Respawn
+        var respawner = await Respawner.CreateAsync(connection, new RespawnerOptions
+        {
+            DbAdapter = DbAdapter.SqlServer
+        });
+        
         await connection.CloseAsync();
         return new DatabaseResetter(connection, respawner);
     }
